@@ -12,3 +12,5 @@ Verified on 2026-10-05 using Node 24:
 Not yet verified: hosted Supabase connectivity, Netlify deployment/adapter execution, browser visual QA, and a real Groq model response. These require the user's configured accounts and credentials. Follow HOSTING.md before submission.
 
 There are no real credentials or claimant records in the package. Automated integration checks generate temporary secrets and synthetic data. Tests do not establish a production-grade authentication or audit system.
+
+Record the hosted checks you actually completed: login, claim creation, decisions, persistence after refresh, and live Groq review only if tested successfully. Remove those completed checks from “Not yet verified.”
