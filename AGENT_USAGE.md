@@ -46,3 +46,5 @@ New database tests execute the actual SQL with PGlite (PostgreSQL WASM), verify 
 ## Groq migration
 
 At the user's request for free-tier AI, Codex replaced the OpenAI Responses integration with Groq Chat Completions and the strict-schema-capable `openai/gpt-oss-20b` model. Representative prompt: switch the provider without weakening evidence validation or human approval. Updated server environment names, documentation and mocked provider tests. No work was delegated. Rejected the shortcut of merely placing a Groq key in the old OpenAI configuration: the endpoint and response contract differ. Verified the migration with unit tests, a production build and the local HTTP/database integration suite. A real Groq call still requires the user's private deployment configuration.
+
+Add the deployment troubleshooting: accidentally deleted required files, restored them through Git, and investigated login environment variables. Mention your own verification steps.
