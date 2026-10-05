@@ -97,3 +97,5 @@ Excluded: payments, payroll, tax calculations, receipt uploads/OCR, currency con
 ## Deployment status and limits
 
 This is a standalone export for your own repository and hosting account. It has not been deployed to your Netlify/Supabase accounts. See `VERIFICATION.md` for the checks actually run on this export. Browser visual QA and real-provider verification remain required. Do not describe it as fully verified until the walkthrough passes with live AI and persisted data. Use only synthetic expenses in the shared demo workspace.
+
+Add your live Netlify URL and mention that reviewers receive the demo password through private submission remarks.
