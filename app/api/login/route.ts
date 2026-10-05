@@ -6,6 +6,11 @@ const attempts=new Map<string,{count:number;until:number}>();
 export async function POST(request:Request) {
   if(!sameOrigin(request))return new Response('Invalid origin',{status:403});
   const secret=process.env.SESSION_SECRET,password=process.env.REVIEWER_PASSWORD;
+  console.log(JSON.stringify({
+  event: 'login_config_check',
+  sessionSecretLength: secret?.length ?? 0,
+  reviewerPasswordLength: password?.length ?? 0
+}));
   if(!secret||secret.length<32||!password||password.length<12)return new Response('Set SESSION_SECRET (32+ characters) and REVIEWER_PASSWORD (12+ characters) on the server.',{status:503});
   // Best-effort per-process throttle; use a single instance for this demo.
   const ip=request.headers.get('x-forwarded-for')?.split(',')[0].trim()||'local';
