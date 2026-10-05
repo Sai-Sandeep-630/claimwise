@@ -65,11 +65,11 @@ test('unknown citations, missing citations and malformed model results are rejec
 });
 test('AI pipeline uses two structured stages and cannot mark flagged claims compliant', async () => {
     const calls: any[] = [];
-    const mock = (async (_url: any, init: any) => { calls.push(JSON.parse(init.body)); const output = calls.length === 1 ? { category: 'Meals', uncertain: true, reason: 'Ambiguous' } : { ...review, questions: [] }; return Response.json({ status: 'completed', output: [{ content: [{ type: 'output_text', text: JSON.stringify(output) }] }] }); }) as typeof fetch;
+    const mock = (async (_url: any, init: any) => { assert.equal(_url, 'https://api.groq.com/openai/v1/chat/completions'); calls.push(JSON.parse(init.body)); const output = calls.length === 1 ? { category: 'Meals', uncertain: true, reason: 'Ambiguous' } : { ...review, questions: [] }; return Response.json({ choices: [{ finish_reason: 'stop', message: { content: JSON.stringify(output) } }] }); }) as typeof fetch;
     const c = newClaim({ ...base, receipt: false }, 'test');
     const result = await runReview(c, [c], 'fake-test-key', 'test-model', 'test-request', mock);
     assert.equal(calls.length, 2);
-    assert.equal(calls[0].text.format.strict, true);
+    assert.equal(calls[0].response_format.json_schema.strict, true);
     assert.equal(result.assessment, 'clarification');
     assert.equal(result.uncertain, true);
     assert.ok(result.questions.length);
@@ -80,7 +80,7 @@ test('provider failures and invalid citations never produce a saved review', asy
     await assert.rejects(() => runReview(c, [c], 'test', 'test', 'test', (async () => new Response('', { status: 429 })) as typeof fetch), /quota/);
     assert.equal(c.review, null);
     let n = 0;
-    const mock = (async () => Response.json({ status: 'completed', output: [{ content: [{ type: 'output_text', text: JSON.stringify(++n === 1 ? { category: 'Meals', uncertain: false, reason: 'Meal' } : { ...review, findings: [{ message: 'Bad', sectionIds: ['P99'] }] }) }] }] })) as typeof fetch;
+    const mock = (async () => Response.json({ choices: [{ finish_reason: 'stop', message: { content: JSON.stringify(++n === 1 ? { category: 'Meals', uncertain: false, reason: 'Meal' } : { ...review, findings: [{ message: 'Bad', sectionIds: ['P99'] }] }) } }] })) as typeof fetch;
     await assert.rejects(() => runReview(c, [c], 'test', 'test', 'test', mock), /citations/);
 });
 test('sample dataset contains receipt, duplicate, foreign currency and limit edge cases', () => {
@@ -90,4 +90,12 @@ test('sample dataset contains receipt, duplicate, foreign currency and limit edg
     assert.ok(cs.some(c => c.currency === 'USD'));
     assert.ok(cs.some(c => checks(c, cs).some(f => f.message.includes('Potential duplicate'))));
     assert.ok(cs.some(c => checks(c, cs).some(f => f.message.includes('Exceeds'))));
+});
+
+test('truncated and refused provider replies cannot become reviews', async () => {
+    const c = newClaim(base, 'test');
+    for (const choice of [{ finish_reason: 'length', message: { content: '{}' } }, { finish_reason: 'stop', message: { refusal: 'Refused', content: '{}' } }]) {
+        await assert.rejects(() => runReview(c, [c], 'test', 'test', 'test', (async () => Response.json({ choices: [choice] })) as typeof fetch), /incomplete/);
+        assert.equal(c.review, null);
+    }
 });

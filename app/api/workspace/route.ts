@@ -5,19 +5,19 @@ import { POLICY, CATEGORIES, checks, newClaim, sampleClaims, applyDecision, even
 import { runReview } from '@/lib/ai';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
-const settings = () => ({OPENAI_API_KEY:process.env.OPENAI_API_KEY,OPENAI_MODEL:process.env.OPENAI_MODEL});
+const settings = () => ({GROQ_API_KEY:process.env.GROQ_API_KEY,GROQ_MODEL:process.env.GROQ_MODEL});
 const reply = (data: unknown, status = 200) => Response.json(data, { status, headers: { 'Cache-Control': 'no-store' } });
 async function identity() { const user = await getReviewer(); if (!user)
     throw new Error('AUTH_REQUIRED'); return user; }
 export async function GET() { try {
     const user = await identity();
     const row = await readWorkspace(user.userId);
-    return reply({ workspace: row ? row.data : { claims: [] }, revision: row?.revision ?? 0, policy: POLICY, aiConfigured: !!settings().OPENAI_API_KEY, actor: user.email ?? 'Reviewer' });
+    return reply({ workspace: row ? row.data : { claims: [] }, revision: row?.revision ?? 0, policy: POLICY, aiConfigured: !!settings().GROQ_API_KEY, actor: user.email ?? 'Reviewer' });
 }
 catch (e) {
     return failure(e);
 } }
-function failure(e: unknown, requestId?: string) { const message = e instanceof Error ? e.message : 'Unexpected error'; const status = message === 'AUTH_REQUIRED' ? 401 : message === 'CONFLICT' ? 409 : (message === 'AI_NOT_CONFIGURED' || message === 'DATABASE_NOT_CONFIGURED') ? 503 : message === 'NOT_FOUND' ? 404 : message.startsWith('INVALID:') ? 400 : 502; console.error(JSON.stringify({ event: 'request_failed', requestId, status, code: status === 502 ? 'BACKEND_ERROR' : message.slice(0, 80) })); return reply({ error: message === 'CONFLICT' ? 'This workspace changed in another session. Reload and try again.' : message === 'AUTH_REQUIRED' ? 'Please sign in to use this workspace.' : message === 'AI_NOT_CONFIGURED' ? 'Live AI is not configured. Add OPENAI_API_KEY securely to the deployment to enable reviews.' : message === 'DATABASE_NOT_CONFIGURED' ? 'Database setup is incomplete. Configure SUPABASE_URL and SUPABASE_SECRET_KEY on the server.' : message === 'NOT_FOUND' ? 'Claim not found.' : status === 400 ? message.slice(8) : 'The operation could not be completed. The AI provider or database may be unavailable. Retry shortly.', requestId }, status); }
+function failure(e: unknown, requestId?: string) { const message = e instanceof Error ? e.message : 'Unexpected error'; const status = message === 'AUTH_REQUIRED' ? 401 : message === 'CONFLICT' ? 409 : (message === 'AI_NOT_CONFIGURED' || message === 'DATABASE_NOT_CONFIGURED') ? 503 : message === 'NOT_FOUND' ? 404 : message.startsWith('INVALID:') ? 400 : 502; console.error(JSON.stringify({ event: 'request_failed', requestId, status, code: status === 502 ? 'BACKEND_ERROR' : message.slice(0, 80) })); return reply({ error: message === 'CONFLICT' ? 'This workspace changed in another session. Reload and try again.' : message === 'AUTH_REQUIRED' ? 'Please sign in to use this workspace.' : message === 'AI_NOT_CONFIGURED' ? 'Live AI is not configured. Add GROQ_API_KEY securely to the deployment to enable reviews.' : message === 'DATABASE_NOT_CONFIGURED' ? 'Database setup is incomplete. Configure SUPABASE_URL and SUPABASE_SECRET_KEY on the server.' : message === 'NOT_FOUND' ? 'Claim not found.' : status === 400 ? message.slice(8) : 'The operation could not be completed. The AI provider or database may be unavailable. Retry shortly.', requestId }, status); }
 export async function POST(request: Request) {
     const requestId = crypto.randomUUID(), start = Date.now();
     try {
@@ -62,12 +62,12 @@ export async function POST(request: Request) {
             if (body.action === 'review') {
                 if (c.status === 'Approved' || c.status === 'Rejected')
                     throw new Error('INVALID:Reopen this claim before running another review.');
-                if (!settings().OPENAI_API_KEY)
+                if (!settings().GROQ_API_KEY)
                     throw new Error('AI_NOT_CONFIGURED');
                 const recent = c.history.filter(e => e.type === 'AI reviewed' && Date.now() - Date.parse(e.at) < 60000);
                 if (recent.length >= 2)
                     throw new Error('INVALID:Wait one minute before reviewing this claim again.');
-                const review = await runReview(c, workspace.claims, settings().OPENAI_API_KEY!, settings().OPENAI_MODEL || 'gpt-4.1-mini', requestId);
+                const review = await runReview(c, workspace.claims, settings().GROQ_API_KEY!, settings().GROQ_MODEL || 'openai/gpt-oss-20b', requestId);
                 c.review = review;
                 c.history.push(event(actor, 'AI reviewed', 'Advisory review generated; human decision required.', { review, requestId }));
             }

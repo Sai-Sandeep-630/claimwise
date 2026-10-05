@@ -34,7 +34,7 @@ const gateway=createHTTPServer(async(req,res)=>{
 });
 await new Promise(resolve=>gateway.listen(0,'127.0.0.1',resolve));
 const databaseURL=`http://127.0.0.1:${gateway.address().port}`;
-const env={...process.env,NODE_ENV:'production',NEXT_TELEMETRY_DISABLED:'1',PORT:String(port),HOSTNAME:'127.0.0.1',APP_URL:origin,SUPABASE_URL:databaseURL,SUPABASE_SECRET_KEY:databaseKey,SESSION_SECRET:randomBytes(32).toString('hex'),REVIEWER_PASSWORD:password,OPENAI_API_KEY:''};
+const env={...process.env,NODE_ENV:'production',NEXT_TELEMETRY_DISABLED:'1',PORT:String(port),HOSTNAME:'127.0.0.1',APP_URL:origin,SUPABASE_URL:databaseURL,SUPABASE_SECRET_KEY:databaseKey,SESSION_SECRET:randomBytes(32).toString('hex'),REVIEWER_PASSWORD:password,GROQ_API_KEY:''};
 const nativeFetch=globalThis.fetch;
 globalThis.fetch=(url,options={})=>nativeFetch(url,{...options,signal:AbortSignal.timeout(4000)});
 let child,output='';

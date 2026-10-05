@@ -1,6 +1,6 @@
 # Free-tier setup: GitHub + Netlify + Supabase
 
-This version uses Netlify for the Next.js frontend/backend and Supabase PostgreSQL for persistent data. There is no SQLite file or paid disk requirement. Hosting/database free tiers have quotas and availability limits. The current OpenAI integration still requires separately funded API access.
+This version uses Netlify for the Next.js frontend/backend and Supabase PostgreSQL for persistent data. There is no SQLite file or paid disk requirement. Hosting/database free tiers have quotas and availability limits. The AI workflow uses Groq, which offers a rate-limited free plan. Check your account limits before review.
 
 ## 1. Create the Supabase database
 
@@ -58,8 +58,8 @@ In Netlify's project environment-variable settings, add the following for the pr
 |---|---|
 | `SUPABASE_URL` | Your Supabase Project URL |
 | `SUPABASE_SECRET_KEY` | Your server-only Supabase secret key |
-| `OPENAI_API_KEY` | Your funded OpenAI API key |
-| `OPENAI_MODEL` | `gpt-4.1-mini` |
+| `GROQ_API_KEY` | Your Groq API key |
+| `GROQ_MODEL` | `openai/gpt-oss-20b` |
 | `REVIEWER_PASSWORD` | A unique demo-only password of at least 12 characters |
 | `SESSION_SECRET` | A random secret of at least 32 characters |
 | `APP_URL` | Exact production URL, e.g. `https://your-project.netlify.app` |
@@ -84,7 +84,7 @@ If Netlify assigns the URL only after the first deployment, set `APP_URL` after 
 8. Refresh the page and redeploy once to confirm data stays in Supabase.
 9. Open the URL in an incognito browser. Ensure a reviewer can reach the app login without your Netlify account. If Netlify-level access protection is enabled, configure access for the reviewer or make that project accessible; the app's own password still protects its data.
 
-Submit the GitHub URL, Netlify URL and demo reviewer password in the private remarks. Never submit your OpenAI key, Supabase secret key or session secret. No username is required for the demo login.
+Submit the GitHub URL, Netlify URL and demo reviewer password in the private remarks. Never submit your Groq key, Supabase secret key or session secret. No username is required for the demo login.
 
 ## Local development (optional)
 
@@ -109,7 +109,7 @@ Open http://localhost:3000. For development use `npm run dev`. The automated tes
 
 - Netlify free projects can pause when the account's monthly usage limits are exhausted. Check usage before and during evaluation.
 - Supabase may pause low-activity free projects after seven days. Check the dashboard and restore the project if necessary before review. No uptime guarantee is implied by using free tiers.
-- OpenAI API usage is separate from hosting and ChatGPT subscription billing. The app performs two model calls per review; monitor your API budget.
+- Groq free-plan quotas apply. The app performs two model calls per review; monitor token and request limits in your Groq console.
 - The app uses a shared demo password and sample expenses. It is not an organization-wide production authentication system.
 
 ## Troubleshooting
@@ -118,8 +118,8 @@ Open http://localhost:3000. For development use `npm run dev`. The automated tes
 - **Database unavailable:** confirm the project is active, run the SQL file, enable the Data API, and check that the secret key belongs to that project. Server logs include the upstream HTTP status without exposing the key.
 - **Invalid origin / login redirects to the wrong URL:** set `APP_URL` to the current production URL and redeploy.
 - **Login unavailable:** check the password and secret minimum lengths.
-- **Live AI setup pending:** add `OPENAI_API_KEY` and redeploy.
-- **AI provider failed / timeout:** check billing, model access and provider status, then retry. The app never substitutes a fake review.
+- **Live AI setup pending:** add `GROQ_API_KEY` and redeploy.
+- **AI provider failed / timeout:** check quota, model access and provider status, then retry. The app never substitutes a fake review.
 - **Conflict:** another request changed the workspace. Reload and retry.
 - **Module or build errors:** confirm Node 24, the included `package-lock.json`, and the correct repository root. Do not mix this version with the earlier SQLite/Render files.
 
@@ -129,3 +129,6 @@ Official references checked for this version:
 - https://supabase.com/docs/guides/getting-started/api-keys
 - https://supabase.com/docs/guides/database/functions
 - https://supabase.com/docs/guides/platform/free-project-pausing
+
+- https://console.groq.com/docs/structured-outputs
+- https://console.groq.com/docs/rate-limits

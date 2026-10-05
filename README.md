@@ -6,7 +6,7 @@ A runnable full-stack application for reviewing employee expenses using determin
 
 ## Technology
 
-React + Next.js App Router, TypeScript, Node.js 24, Supabase PostgreSQL, OpenAI Responses API, Tailwind CSS, and Lucide icons. This Netlify-ready export does not require ChatGPT sign-in or any plugin.
+React + Next.js App Router, TypeScript, Node.js 24, Supabase PostgreSQL, Groq Chat Completions API, Tailwind CSS, and Lucide icons. This Netlify-ready export does not require ChatGPT sign-in or any plugin.
 
 ## Quick start
 
@@ -19,7 +19,7 @@ npm run test:integration
 npm start
 ```
 
-Open http://localhost:3000 and enter the demo reviewer password you configured. Use `npm run dev` for development. Run `supabase/schema.sql` once in your Supabase SQL Editor before first use. The OpenAI API key is server-side and requires separate API billing; a ChatGPT subscription does not supply API credit.
+Open http://localhost:3000 and enter the demo reviewer password you configured. Use `npm run dev` for development. Run `supabase/schema.sql` once in your Supabase SQL Editor before first use. The Groq API key stays server-side. The default model is `openai/gpt-oss-20b`, hosted by Groq; no OpenAI key is required. Groq free-plan quotas apply.
 
 ## Architecture
 
@@ -71,7 +71,7 @@ The initial schema and revision-checked save function are in `supabase/schema.sq
 
 ## Configuration
 
-See `.env.example` for all names and `HOSTING.md` for instructions. Never commit populated environment files. `OPENAI_API_KEY`, `SUPABASE_SECRET_KEY` and `SESSION_SECRET` are server-only secrets. `REVIEWER_PASSWORD` is a demo-only login credential to share privately with reviewers. Changing `SESSION_SECRET` invalidates existing sessions.
+See `.env.example` for all names and `HOSTING.md` for instructions. Never commit populated environment files. `GROQ_API_KEY`, `SUPABASE_SECRET_KEY` and `SESSION_SECRET` are server-only secrets. `REVIEWER_PASSWORD` is a demo-only login credential to share privately with reviewers. Changing `SESSION_SECRET` invalidates existing sessions.
 
 ## Logging and error states
 

@@ -13,14 +13,16 @@ export function validateEvidence(result: any, sections: typeof POLICY.sections) 
 export async function runReview(claim: Claim, claims: Claim[], key: string, model: string, requestId: string, fetcher: typeof fetch = fetch): Promise<AIReview> {
     async function call(stage: string, instructions: string, input: unknown, schema: unknown) {
         const start = Date.now();
-        const r = await fetcher('https://api.openai.com/v1/responses', { method: 'POST', headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, signal: AbortSignal.timeout(18000), body: JSON.stringify({ model, store: false, instructions, input: JSON.stringify(input), max_output_tokens: 2000, text: { format: { type: 'json_schema', name: stage, strict: true, schema } } }) });
+        const r = await fetcher('https://api.groq.com/openai/v1/chat/completions', { method: 'POST', headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, signal: AbortSignal.timeout(18000), body: JSON.stringify({ model, messages: [{ role: 'system', content: instructions }, { role: 'user', content: JSON.stringify(input) }], max_completion_tokens: 3000, response_format: { type: 'json_schema', json_schema: { name: stage, strict: true, schema } } }) });
         console.log(JSON.stringify({ event: 'ai_call', requestId, stage, model, status: r.status, durationMs: Date.now() - start }));
         if (!r.ok)
             throw new Error(r.status === 429 ? 'AI service is busy or its quota is exhausted. Retry later.' : 'AI provider request failed. Check server configuration and retry.');
         const body: any = await r.json();
-        if (body.status !== 'completed')
+        const choice = body.choices?.[0];
+        if (choice?.finish_reason !== 'stop' || choice.message?.refusal)
             throw new Error('AI response was incomplete. Please retry.');
-        const output = (body.output ?? []).flatMap((x: any) => x.content ?? []).filter((x: any) => x.type === 'output_text').map((x: any) => x.text).join('');
+        const output = choice.message?.content;
+        if (typeof output !== 'string') throw new Error('AI response could not be read. Please retry.');
         try {
             return JSON.parse(output);
         }
